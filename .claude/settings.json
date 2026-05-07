@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "git status",
+      "git diff",
+      "git diff --staged",
+      "git log *",
+      "git add *",
+      "git commit *",
+      "git push *",
+      "git checkout *",
+      "git branch *",
+      "gh pr create *",
+      "gh pr view *",
+      "gh pr list *",
+      "npm *",
+      "npm run *",
+      "npx *"
+    ],
+    "deny": [
+      "rm -rf *",
+      "cat .env*",
+      "echo * > .env*",
+      "curl * | bash",
+      "wget * | sh"
+    ]
+  },
+  "env": {
+    "CLAUDE_FLOW": "pr-review"
+  }
+}
