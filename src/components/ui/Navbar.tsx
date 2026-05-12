@@ -1,21 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
-
-/* 브랜드 로고 — 고유 디자인이므로 커스텀 유지 */
-function LogoIcon() {
-  return (
-    <svg width='18' height='18' viewBox='0 0 28 28' fill='none' aria-hidden='true'>
-      <polyline
-        points='2,22 8,13 13,17 19,7 26,11'
-        stroke='white'
-        strokeWidth='2.5'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  );
-}
+import ChartIcon from './ChartIcon';
 
 function UserMenu() {
   const navigate = useNavigate();
@@ -87,7 +73,7 @@ export default function Navbar() {
       <div className='w-full max-w-5xl mx-auto px-4 h-14 flex items-center justify-between'>
         <Link to='/dashboard' className='flex items-center gap-2 no-underline'>
           <div className='w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center'>
-            <LogoIcon />
+            <ChartIcon size={18} />
           </div>
           <span className='text-white font-semibold text-sm tracking-tight'>
             가상 주식 트레이더
