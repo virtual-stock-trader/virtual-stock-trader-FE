@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
   Area,
@@ -185,16 +186,20 @@ function IndexCard({ index }: IndexCardProps) {
 type StockCardProps = {
   stock: Stock;
   onToggleFavorite: (code: string) => void;
+  onSelect: (code: string) => void;
 };
 
-function StockCard({ stock, onToggleFavorite }: StockCardProps) {
+function StockCard({ stock, onToggleFavorite, onSelect }: StockCardProps) {
   return (
-    <div className='bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2'>
+    <div
+      className='bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2 cursor-pointer hover:bg-white/8 transition-colors'
+      onClick={() => onSelect(stock.code)}
+    >
       <div className='flex items-center justify-between'>
         <p className='text-white font-medium text-sm'>{stock.name}</p>
         <button
           type='button'
-          onClick={() => onToggleFavorite(stock.code)}
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(stock.code); }}
           aria-label={stock.isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
           className={`text-base leading-none cursor-pointer transition-opacity ${
             stock.isFavorite
@@ -265,6 +270,7 @@ function PortfolioRow({ item }: PortfolioRowProps) {
 }
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [stocks, setStocks] = useState(INITIAL_STOCKS);
 
   const toggleFavorite = (code: string) => {
@@ -395,6 +401,7 @@ export default function DashboardPage() {
                 key={stock.code}
                 stock={stock}
                 onToggleFavorite={toggleFavorite}
+                onSelect={(code) => navigate(`/stock/${code}`)}
               />
             ))}
           </div>
