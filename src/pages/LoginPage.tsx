@@ -20,9 +20,21 @@ function KakaoIcon() {
   )
 }
 
+import { useNavigate } from 'react-router-dom'
+import { useInvestmentStore } from '../store/investmentStore'
+
 export default function LoginPage() {
+  const navigate = useNavigate()
+  const { isOnboarded } = useInvestmentStore()
+
   const handleKakaoLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/kakao`
+    /* 백엔드 OAuth 연동 전: 클라이언트 사이드 분기 처리
+       OAuth 연동 후에는 콜백 URL에서 동일한 분기 적용 필요 */
+    if (isOnboarded) {
+      navigate('/dashboard')
+    } else {
+      navigate('/onboarding')
+    }
   }
 
   return (
