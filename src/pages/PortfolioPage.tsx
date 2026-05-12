@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts';
 import Navbar from '../components/ui/Navbar';
 import BottomNav from '../components/ui/BottomNav';
+import { ALL_TRANSACTIONS } from '../lib/mock';
 
 type PortfolioItem = {
   code: string;
@@ -11,20 +12,11 @@ type PortfolioItem = {
   currentPrice: number;
 };
 
-type Transaction = {
-  id: number;
-  date: string;
-  code: string;
-  name: string;
-  type: 'buy' | 'sell';
-  quantity: number;
-  price: number;
-};
-
 type AllocationItem = {
   name: string;
   value: number;
   color: string;
+  fill: string;
 };
 
 type TooltipProps = {
@@ -43,18 +35,13 @@ const PORTFOLIO: PortfolioItem[] = [
 ];
 
 const ALLOCATION: AllocationItem[] = [
-  { name: '예수금', value: 10_000_000, color: '#3b82f6' },
-  { name: '삼성전자', value: 705_000, color: '#ef4444' },
-  { name: '카카오', value: 216_000, color: '#f59e0b' },
+  { name: '예수금', value: 10_000_000, color: '#3b82f6', fill: '#3b82f6' },
+  { name: '삼성전자', value: 705_000, color: '#ef4444', fill: '#ef4444' },
+  { name: '카카오', value: 216_000, color: '#f59e0b', fill: '#f59e0b' },
 ];
 
-const TRANSACTIONS: Transaction[] = [
-  { id: 1, date: '2026-05-07', code: '035720', name: '카카오', type: 'buy', quantity: 5, price: 41_000 },
-  { id: 2, date: '2026-05-05', code: '005930', name: '삼성전자', type: 'buy', quantity: 10, price: 68_000 },
-  { id: 3, date: '2026-04-28', code: '207940', name: '삼성바이오', type: 'sell', quantity: 2, price: 890_000 },
-  { id: 4, date: '2026-04-20', code: '207940', name: '삼성바이오', type: 'buy', quantity: 2, price: 850_000 },
-  { id: 5, date: '2026-04-15', code: '035420', name: 'NAVER', type: 'sell', quantity: 3, price: 182_000 },
-];
+/* 포트폴리오 페이지에서는 최근 5건만 미리보기로 표시 */
+const RECENT_TRANSACTIONS = ALL_TRANSACTIONS.slice(0, 5);
 
 function fmtPrice(n: number) {
   return n.toLocaleString('ko-KR');
@@ -136,6 +123,7 @@ export default function PortfolioPage() {
               <div className="shrink-0" style={{ width: 140, height: 140 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
+                    {/* recharts v3: data 항목의 fill 속성을 슬라이스 색상으로 사용 */}
                     <Pie
                       data={ALLOCATION}
                       cx="50%"
@@ -144,11 +132,7 @@ export default function PortfolioPage() {
                       outerRadius={62}
                       dataKey="value"
                       strokeWidth={0}
-                    >
-                      {ALLOCATION.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
+                    />
                     <Tooltip content={<AllocationTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -244,11 +228,20 @@ export default function PortfolioPage() {
 
         {/* 거래 내역 */}
         <section className="flex flex-col gap-3">
-          <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
-            거래 내역
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
+              거래 내역
+            </h2>
+            <button
+              type="button"
+              onClick={() => navigate('/transactions')}
+              className="text-gray-500 text-xs hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              전체보기
+            </button>
+          </div>
           <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-            {TRANSACTIONS.map((tx) => {
+            {RECENT_TRANSACTIONS.map((tx) => {
               const total = tx.price * tx.quantity;
               const isBuy = tx.type === 'buy';
               return (
