@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiChevronLeft, FiCheck } from 'react-icons/fi';
 import Navbar from '../components/ui/Navbar';
 import { useInvestmentStore } from '../store/investmentStore';
 
@@ -25,31 +26,6 @@ function fmtShort(n: number) {
   return `${fmtPrice(n)}원`;
 }
 
-function BackIcon() {
-  return (
-    <svg
-      width="20" height="20" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg
-      width="18" height="18" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
 
 export default function InvestmentSettingsPage() {
   const navigate = useNavigate();
@@ -80,7 +56,7 @@ export default function InvestmentSettingsPage() {
             className="text-gray-400 hover:text-white transition-colors cursor-pointer -ml-1"
             aria-label="뒤로가기"
           >
-            <BackIcon />
+            <FiChevronLeft size={20} strokeWidth={2.5} />
           </button>
           <h1 className="text-white font-bold text-lg">투자금 설정</h1>
         </div>
@@ -197,7 +173,7 @@ export default function InvestmentSettingsPage() {
         >
           {saved ? (
             <>
-              <CheckIcon />
+              <FiCheck size={18} strokeWidth={2.5} />
               저장되었습니다
             </>
           ) : (

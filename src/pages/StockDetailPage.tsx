@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FiChevronLeft } from 'react-icons/fi';
 import {
   createChart,
   CandlestickSeries,
@@ -164,23 +165,6 @@ function rateColor(n: number) {
   return 'text-gray-400';
 }
 
-function BackIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
 
 export default function StockDetailPage() {
   const { code } = useParams<{ code: string }>();
@@ -287,7 +271,7 @@ export default function StockDetailPage() {
             className="text-gray-400 hover:text-white transition-colors cursor-pointer -ml-1"
             aria-label="뒤로가기"
           >
-            <BackIcon />
+            <FiChevronLeft size={20} strokeWidth={2.5} />
           </button>
           <div className="flex items-center gap-2">
             <h1 className="text-white font-bold text-lg">{stock.name}</h1>

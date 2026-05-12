@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiChevronLeft, FiSearch } from 'react-icons/fi';
 import Navbar from '../components/ui/Navbar';
 import BottomNav from '../components/ui/BottomNav';
 
@@ -43,42 +44,6 @@ function rateBadgeColor(n: number) {
   return 'bg-white/10 text-gray-400';
 }
 
-function BackIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
-}
 
 type StockRowProps = {
   stock: Stock;
@@ -164,7 +129,7 @@ export default function StockListPage() {
             className="text-gray-400 hover:text-white transition-colors cursor-pointer -ml-1"
             aria-label="뒤로가기"
           >
-            <BackIcon />
+            <FiChevronLeft size={20} strokeWidth={2.5} />
           </button>
           <h1 className="text-white font-bold text-lg">종목 전체</h1>
         </div>
@@ -172,7 +137,7 @@ export default function StockListPage() {
         {/* 검색창 */}
         <div className="relative">
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
-            <SearchIcon />
+            <FiSearch size={16} />
           </span>
           <input
             type="search"
