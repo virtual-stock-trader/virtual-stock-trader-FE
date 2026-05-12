@@ -390,6 +390,7 @@ export default function DashboardPage() {
             </h2>
             <button
               type='button'
+              onClick={() => navigate('/stocks')}
               className='text-gray-500 text-xs hover:text-gray-300 transition-colors cursor-pointer'
             >
               전체보기
