@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import Navbar from '../components/ui/Navbar';
+import BottomNav from '../components/ui/BottomNav';
 
 type MarketIndex = {
   name: string;
@@ -284,7 +285,7 @@ export default function DashboardPage() {
   return (
     <div className='min-h-screen bg-[#0a0e1a]'>
       <Navbar />
-      <main className='w-full max-w-5xl mx-auto px-4 py-6 flex flex-col gap-8'>
+      <main className='w-full max-w-5xl mx-auto px-4 py-6 flex flex-col gap-8 pb-24'>
         {/* 내 자산 현황 */}
         <section className='flex flex-col gap-3'>
           <h2 className='text-gray-500 text-xs font-semibold uppercase tracking-widest'>
@@ -409,13 +410,14 @@ export default function DashboardPage() {
         </section>
 
         {/* 내 보유 종목 */}
-        <section className='flex flex-col gap-3 pb-8'>
+        <section className='flex flex-col gap-3'>
           <div className='flex items-center justify-between'>
             <h2 className='text-gray-500 text-xs font-semibold uppercase tracking-widest'>
               내 보유 종목
             </h2>
             <button
               type='button'
+              onClick={() => navigate('/portfolio')}
               className='text-gray-500 text-xs hover:text-gray-300 transition-colors cursor-pointer'
             >
               전체보기
@@ -455,6 +457,7 @@ export default function DashboardPage() {
           </div>
         </section>
       </main>
+      <BottomNav />
     </div>
   );
 }

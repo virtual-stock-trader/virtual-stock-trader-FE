@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import StockDetailPage from './pages/StockDetailPage'
 import StockListPage from './pages/StockListPage'
+import PortfolioPage from './pages/PortfolioPage'
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/stock/:code" element={<StockDetailPage />} />
         <Route path="/stocks" element={<StockListPage />} />
+        <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

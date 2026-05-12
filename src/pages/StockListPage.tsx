@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/ui/Navbar';
+import BottomNav from '../components/ui/BottomNav';
 
 type Stock = {
   code: string;
@@ -153,7 +154,7 @@ export default function StockListPage() {
   return (
     <div className="min-h-screen bg-[#0a0e1a]">
       <Navbar />
-      <main className="w-full max-w-5xl mx-auto px-4 py-6 flex flex-col gap-5">
+      <main className="w-full max-w-5xl mx-auto px-4 py-6 flex flex-col gap-5 pb-24">
 
         {/* 헤더 */}
         <div className="flex items-center gap-3">
@@ -238,6 +239,7 @@ export default function StockListPage() {
         )}
 
       </main>
+      <BottomNav />
     </div>
   );
 }
