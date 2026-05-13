@@ -1,0 +1,89 @@
+goal: 가상 주식 트레이더 프론트엔드의 로그인 페이지 UI 구현 (v0 디자인 참고 재구현)
+
+constraints:
+  - Vite + React 19 + TypeScript strict mode
+  - Tailwind CSS v4 (@tailwindcss/vite 플러그인 방식)
+  - CLAUDE.md 코드 규칙 준수 (type 키워드, PascalCase, console.log 금지, any 금지)
+  - v0 디자인 참고 재구현 (코드 복사 금지)
+  - 실제 OAuth 흐름 미구현 — 버튼 클릭 시 VITE_API_URL/auth/kakao로 window.location.href 이동
+  - react-router-dom v7 사용 — BrowserRouter + Route 설정 포함
+
+acceptance_criteria:
+  - /src/pages/LoginPage.tsx 생성
+  - 로고 및 브랜드명("가상 주식 트레이더") 표시
+  - 하이라이트 문구 표시
+  - 카카오 로그인 버튼 표시 및 클릭 동작
+  - npx tsc --noEmit 통과
+  - npm run lint 통과
+  - App.tsx에서 LoginPage 렌더링
+
+ontology_schema:
+  name: LoginPage
+  description: 로그인 페이지 UI 도메인 모델
+  fields:
+    - name: brandName
+      type: string
+      description: 서비스 브랜드명 ("가상 주식 트레이더")
+    - name: highlightText
+      type: string
+      description: 메인 하이라이트 문구
+    - name: subText
+      type: string
+      description: 부가 설명 문구
+    - name: kakaoAuthUrl
+      type: string
+      description: 백엔드 카카오 OAuth 엔드포인트 (import.meta.env.VITE_API_URL + /auth/kakao)
+
+evaluation_principles:
+  - name: visual_fidelity
+    description: v0 디자인과 시각적 유사도 (레이아웃/색상/타이포그래피)
+    weight: 0.35
+  - name: code_quality
+    description: TypeScript strict 준수 및 CLAUDE.md 코드 규칙
+    weight: 0.35
+  - name: accessibility
+    description: 카카오 버튼 aria-label 등 접근성
+    weight: 0.15
+  - name: maintainability
+    description: 컴포넌트 분리 및 재사용 가능성
+    weight: 0.15
+
+exit_conditions:
+  - name: success
+    description: 모든 인수 기준 충족
+    criteria: tsc + lint 통과 AND 모든 UI 요소 렌더링 확인
+  - name: type_error
+    description: TypeScript 에러 발생
+    criteria: tsc --noEmit 에러 존재 시 재시도
+
+metadata:
+  version: "1.0"
+  timestamp: "2026-05-07"
+  ambiguity_score: 0.10
+  project_type: brownfield
+  context_references:
+    - path: package.json
+      role: primary
+      summary: 의존성 정의 (React 19, Tailwind v4, TanStack Query v5, Zustand v5)
+    - path: vite.config.ts
+      role: reference
+      summary: Tailwind 플러그인 설정
+    - path: src/index.css
+      role: reference
+      summary: "@import tailwindcss 엔트리"
+    - path: .claude/CLAUDE.md
+      role: primary
+      summary: 코드 스타일 규칙 (type, PascalCase, VITE_* 등)
+  existing_patterns:
+    - Tailwind CSS v4 유틸리티 클래스
+    - TypeScript type 키워드 (interface 금지)
+    - PascalCase 컴포넌트 파일명
+    - VITE_* 환경변수 prefix
+    - Props 타입은 파일 상단 type Props = {...}
+  existing_dependencies:
+    - react@19.2.5
+    - react-dom@19.2.5
+    - react-router-dom@7.15.0
+    - tailwindcss@4.2.4
+    - "@tanstack/react-query@5.100.9"
+    - zustand@5.0.13
