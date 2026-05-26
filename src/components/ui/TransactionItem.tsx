@@ -1,21 +1,20 @@
-import { type Transaction } from '../../lib/mock';
-import { fmtPrice } from '../../lib/utils';
+import type { Transaction } from '../../types/api'
+import { fmtPrice } from '../../lib/utils'
 
 type Props = {
-  tx: Transaction;
-  onClick: (code: string) => void;
-};
+  tx: Transaction
+  onClick: (code: string) => void
+}
 
 export default function TransactionItem({ tx, onClick }: Props) {
-  const total = tx.price * tx.quantity;
-  const isBuy = tx.type === 'buy';
+  const total = tx.total ?? tx.price * tx.quantity
+  const isBuy = tx.type === 'buy'
 
   return (
     <div
       className='flex items-center px-4 py-3.5 border-b border-white/5 last:border-b-0 cursor-pointer hover:bg-white/5 transition-colors'
       onClick={() => onClick(tx.code)}
     >
-      {/* 매수/매도 뱃지 */}
       <span
         className={`text-xs font-bold px-2 py-1 rounded-lg mr-3 shrink-0 ${
           isBuy ? 'bg-red-500/15 text-red-400' : 'bg-blue-500/15 text-blue-400'
@@ -24,13 +23,11 @@ export default function TransactionItem({ tx, onClick }: Props) {
         {isBuy ? '매수' : '매도'}
       </span>
 
-      {/* 종목명 / 날짜 */}
       <div className='flex-1 min-w-0'>
         <p className='text-white text-sm font-medium truncate'>{tx.name}</p>
         <p className='text-gray-500 text-xs mt-0.5'>{tx.date}</p>
       </div>
 
-      {/* 수량 / 금액 */}
       <div className='text-right shrink-0'>
         <p className='text-white text-sm font-semibold tabular-nums'>
           {fmtPrice(total)}원
@@ -40,5 +37,5 @@ export default function TransactionItem({ tx, onClick }: Props) {
         </p>
       </div>
     </div>
-  );
+  )
 }
