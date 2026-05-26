@@ -2,9 +2,11 @@ import { useRef, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
 import ChartIcon from './ChartIcon';
+import { useAuth } from '../../hooks/useAuth'
 
 function UserMenu() {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -19,8 +21,9 @@ function UserMenu() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setOpen(false);
+    await signOut();
     navigate('/login');
   };
 

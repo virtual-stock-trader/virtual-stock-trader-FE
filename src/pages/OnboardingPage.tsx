@@ -1,25 +1,29 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useInvestmentStore } from '../store/investmentStore';
-import ChartIcon from '../components/ui/ChartIcon';
-import InvestmentSlider from '../components/ui/InvestmentSlider';
-import { fmtPrice, fmtShort } from '../lib/utils';
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
+import { useAuth } from '../hooks/useAuth'
+import { postOnboarding } from '../lib/api/users'
+import ChartIcon from '../components/ui/ChartIcon'
+import InvestmentSlider from '../components/ui/InvestmentSlider'
+import { fmtPrice, fmtShort } from '../lib/utils'
 
 export default function OnboardingPage() {
-  const navigate = useNavigate();
-  const { completeOnboarding } = useInvestmentStore();
-  const [amount, setAmount] = useState(10_000_000);
+  const navigate = useNavigate()
+  const { refreshProfile } = useAuth()
+  const [amount, setAmount] = useState(10_000_000)
 
-  const handleStart = () => {
-    completeOnboarding(amount);
-    navigate('/dashboard', { replace: true });
-  };
+  const mutation = useMutation({
+    mutationFn: () => postOnboarding(amount),
+    onSuccess: async () => {
+      await refreshProfile()
+      navigate('/dashboard', { replace: true })
+    },
+  })
 
   return (
     <div className='min-h-screen bg-[#0a0e1a] flex flex-col items-center justify-center px-4 py-12'>
       <div className='w-full max-w-sm flex flex-col gap-8'>
 
-        {/* 브랜드 */}
         <div className='flex flex-col items-center gap-3'>
           <div className='w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30'>
             <ChartIcon />
@@ -30,7 +34,6 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* 금액 표시 */}
         <div className='text-center'>
           <p className='text-white text-4xl font-bold tabular-nums tracking-tight'>
             {fmtPrice(amount)}
@@ -41,13 +44,17 @@ export default function OnboardingPage() {
 
         <InvestmentSlider value={amount} onChange={setAmount} />
 
-        {/* 시작 버튼 */}
+        {mutation.isError && (
+          <p className='text-red-400 text-sm text-center'>{(mutation.error as Error).message}</p>
+        )}
+
         <button
           type='button'
-          onClick={handleStart}
-          className='w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 font-bold text-white text-sm transition-colors cursor-pointer'
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending}
+          className='w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 font-bold text-white text-sm transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'
         >
-          {fmtShort(amount)}으로 시작하기
+          {mutation.isPending ? '처리 중...' : `${fmtShort(amount)}으로 시작하기`}
         </button>
 
         <p className='text-gray-600 text-xs text-center'>
@@ -57,5 +64,5 @@ export default function OnboardingPage() {
         </p>
       </div>
     </div>
-  );
+  )
 }
