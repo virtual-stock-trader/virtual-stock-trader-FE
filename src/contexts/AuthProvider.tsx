@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { UserProfile } from '../types/api'
@@ -11,14 +11,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  async function fetchProfile() {
+  const fetchProfile = useCallback(async () => {
     try {
       const p = await getMe()
       setProfile(p)
     } catch {
       setProfile(null)
     }
-  }
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -42,9 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     return () => listener.subscription.unsubscribe()
-  }, [])
+  }, [fetchProfile])
 
-  async function signInWithKakao() {
+  const signInWithKakao = useCallback(async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
@@ -52,19 +52,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         queryParams: { scope: 'profile_nickname profile_image' },
       },
     })
-  }
+  }, [])
 
-  async function signOut() {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut()
-  }
+  }, [])
 
-  async function refreshProfile() {
+  const refreshProfile = useCallback(async () => {
     await fetchProfile()
-  }
+  }, [fetchProfile])
 
-  return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, signInWithKakao, signOut, refreshProfile }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ user, session, profile, isLoading, signInWithKakao, signOut, refreshProfile }),
+    [user, session, profile, isLoading, signInWithKakao, signOut, refreshProfile],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
