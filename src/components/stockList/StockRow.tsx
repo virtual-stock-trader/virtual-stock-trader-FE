@@ -1,10 +1,7 @@
-import { fmtPrice, fmtRate, rateBadgeColor } from '../../lib/utils';
-
 type Stock = {
   code: string;
   name: string;
-  currentPrice: number;
-  changeRate: number;
+  market: string;
 };
 
 type Props = {
@@ -20,7 +17,6 @@ export default function StockRow({ stock, isFavorite, onToggleFavorite, onSelect
       className='flex items-center px-4 py-3.5 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/5 last:border-b-0'
       onClick={() => onSelect(stock.code)}
     >
-      {/* 즐겨찾기 버튼 */}
       <button
         type='button'
         onClick={(e) => {
@@ -37,23 +33,12 @@ export default function StockRow({ stock, isFavorite, onToggleFavorite, onSelect
         ★
       </button>
 
-      {/* 종목명 / 코드 */}
       <div className='flex-1 min-w-0'>
         <p className='text-white text-sm font-medium truncate'>{stock.name}</p>
         <p className='text-gray-500 text-xs mt-0.5'>{stock.code}</p>
       </div>
 
-      {/* 현재가 / 등락률 */}
-      <div className='text-right shrink-0'>
-        <p className='text-white text-sm font-bold tabular-nums'>
-          {fmtPrice(stock.currentPrice)}원
-        </p>
-        <span
-          className={`inline-block text-xs font-semibold px-1.5 py-0.5 rounded mt-0.5 tabular-nums ${rateBadgeColor(stock.changeRate)}`}
-        >
-          {fmtRate(stock.changeRate)}
-        </span>
-      </div>
+      <span className='text-xs text-gray-500 shrink-0'>{stock.market}</span>
     </div>
   );
 }
