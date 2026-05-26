@@ -1,61 +1,48 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiSearch } from 'react-icons/fi';
-import Navbar from '../components/ui/Navbar';
-import BottomNav from '../components/ui/BottomNav';
-import PageHeader from '../components/ui/PageHeader';
-import StockRow from '../components/stockList/StockRow';
+import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { FiSearch } from 'react-icons/fi'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import Navbar from '../components/ui/Navbar'
+import BottomNav from '../components/ui/BottomNav'
+import PageHeader from '../components/ui/PageHeader'
+import StockRow from '../components/stockList/StockRow'
+import { getStocks } from '../lib/api/stocks'
+import { getFavorites, addFavorite, removeFavorite } from '../lib/api/favorites'
 
-type Stock = {
-  code: string;
-  name: string;
-  currentPrice: number;
-  changeRate: number;
-};
-
-type Tab = '전체' | '즐겨찾기';
-
-const ALL_STOCKS: Stock[] = [
-  { code: '005930', name: '삼성전자', currentPrice: 70500, changeRate: 2.17 },
-  { code: '000660', name: 'SK하이닉스', currentPrice: 130000, changeRate: -1.52 },
-  { code: '035420', name: 'NAVER', currentPrice: 188500, changeRate: 1.89 },
-  { code: '051910', name: 'LG화학', currentPrice: 307000, changeRate: -0.97 },
-  { code: '035720', name: '카카오', currentPrice: 43200, changeRate: 2.86 },
-  { code: '207940', name: '삼성바이오', currentPrice: 882000, changeRate: -0.9 },
-  { code: '005380', name: '현대차', currentPrice: 215000, changeRate: 0.94 },
-  { code: '000270', name: '기아', currentPrice: 98500, changeRate: 1.23 },
-  { code: '068270', name: '셀트리온', currentPrice: 175000, changeRate: -0.57 },
-  { code: '105560', name: 'KB금융', currentPrice: 87200, changeRate: 0.35 },
-  { code: '055550', name: '신한지주', currentPrice: 56800, changeRate: -0.18 },
-  { code: '003550', name: 'LG', currentPrice: 92000, changeRate: 1.10 },
-];
-
-const INITIAL_FAVORITES = new Set(['005930', '035720']);
+type Tab = '전체' | '즐겨찾기'
 
 export default function StockListPage() {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-  const [tab, setTab] = useState<Tab>('전체');
-  const [favorites, setFavorites] = useState<Set<string>>(INITIAL_FAVORITES);
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<Tab>('전체')
 
-  const toggleFavorite = (code: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
-  };
+  const { data: stocks = [] } = useQuery({
+    queryKey: ['stocks'],
+    queryFn: () => getStocks(),
+  })
+
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: getFavorites,
+  })
+
+  const favoriteCodes = useMemo(() => new Set(favorites.map((f) => f.code)), [favorites])
+
+  const toggleFavMutation = useMutation({
+    mutationFn: (code: string) =>
+      favoriteCodes.has(code) ? removeFavorite(code) : addFavorite(code),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
+  })
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return ALL_STOCKS.filter((s) => {
-      const matchesQuery =
-        !q || s.name.toLowerCase().includes(q) || s.code.includes(q);
-      const matchesTab = tab === '전체' || favorites.has(s.code);
-      return matchesQuery && matchesTab;
-    });
-  }, [query, tab, favorites]);
+    const q = query.trim().toLowerCase()
+    return stocks.filter((s) => {
+      const matchesQuery = !q || s.name.toLowerCase().includes(q) || s.code.includes(q)
+      const matchesTab = tab === '전체' || favoriteCodes.has(s.code)
+      return matchesQuery && matchesTab
+    })
+  }, [query, tab, stocks, favoriteCodes])
 
   return (
     <div className='min-h-screen bg-[#0a0e1a]'>
@@ -64,7 +51,6 @@ export default function StockListPage() {
 
         <PageHeader title='종목 전체' />
 
-        {/* 검색창 */}
         <div className='relative'>
           <span className='absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none'>
             <FiSearch size={16} />
@@ -78,7 +64,6 @@ export default function StockListPage() {
           />
         </div>
 
-        {/* 탭 */}
         <div className='flex gap-1 bg-white/5 rounded-xl p-1'>
           {(['전체', '즐겨찾기'] as Tab[]).map((t) => (
             <button
@@ -90,22 +75,21 @@ export default function StockListPage() {
               }`}
             >
               {t}
-              {t === '즐겨찾기' && favorites.size > 0 && (
-                <span className='ml-1.5 text-xs text-yellow-400'>{favorites.size}</span>
+              {t === '즐겨찾기' && favoriteCodes.size > 0 && (
+                <span className='ml-1.5 text-xs text-yellow-400'>{favoriteCodes.size}</span>
               )}
             </button>
           ))}
         </div>
 
-        {/* 종목 목록 */}
         <div className='bg-white/5 border border-white/10 rounded-2xl overflow-hidden'>
           {filtered.length > 0 ? (
             filtered.map((stock) => (
               <StockRow
                 key={stock.code}
                 stock={stock}
-                isFavorite={favorites.has(stock.code)}
-                onToggleFavorite={toggleFavorite}
+                isFavorite={favoriteCodes.has(stock.code)}
+                onToggleFavorite={(code) => toggleFavMutation.mutate(code)}
                 onSelect={(code) => navigate(`/stock/${code}`)}
               />
             ))
@@ -128,5 +112,5 @@ export default function StockListPage() {
       </main>
       <BottomNav />
     </div>
-  );
+  )
 }
