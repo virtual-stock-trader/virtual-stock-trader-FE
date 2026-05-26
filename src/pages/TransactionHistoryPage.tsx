@@ -1,32 +1,38 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/ui/Navbar';
-import BottomNav from '../components/ui/BottomNav';
-import PageHeader from '../components/ui/PageHeader';
-import TransactionItem from '../components/ui/TransactionItem';
-import { ALL_TRANSACTIONS } from '../lib/mock';
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import Navbar from '../components/ui/Navbar'
+import BottomNav from '../components/ui/BottomNav'
+import PageHeader from '../components/ui/PageHeader'
+import TransactionItem from '../components/ui/TransactionItem'
+import { getTransactions } from '../lib/api/transactions'
 
-type FilterTab = '전체' | '매수' | '매도';
+type FilterTab = '전체' | '매수' | '매도'
 
 export default function TransactionHistoryPage() {
-  const navigate = useNavigate();
-  const [tab, setTab] = useState<FilterTab>('전체');
+  const navigate = useNavigate()
+  const [tab, setTab] = useState<FilterTab>('전체')
 
-  const filtered = useMemo(() => {
-    if (tab === '전체') return ALL_TRANSACTIONS;
-    return ALL_TRANSACTIONS.filter((tx) =>
-      tab === '매수' ? tx.type === 'buy' : tx.type === 'sell',
-    );
-  }, [tab]);
+  const apiType = tab === '매수' ? 'buy' : tab === '매도' ? 'sell' : undefined
 
-  const buyCnt = ALL_TRANSACTIONS.filter((tx) => tx.type === 'buy').length;
-  const sellCnt = ALL_TRANSACTIONS.filter((tx) => tx.type === 'sell').length;
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['transactions', { type: apiType }],
+    queryFn: () => getTransactions(apiType),
+  })
+
+  const { data: allTransactions = [] } = useQuery({
+    queryKey: ['transactions', {}],
+    queryFn: () => getTransactions(),
+  })
+
+  const buyCnt = allTransactions.filter((tx) => tx.type === 'buy').length
+  const sellCnt = allTransactions.filter((tx) => tx.type === 'sell').length
 
   const tabMeta: { label: FilterTab; count: number }[] = [
-    { label: '전체', count: ALL_TRANSACTIONS.length },
+    { label: '전체', count: allTransactions.length },
     { label: '매수', count: buyCnt },
     { label: '매도', count: sellCnt },
-  ];
+  ]
 
   return (
     <div className='min-h-screen bg-[#0a0e1a]'>
@@ -35,7 +41,6 @@ export default function TransactionHistoryPage() {
 
         <PageHeader title='거래 내역' />
 
-        {/* 필터 탭 */}
         <div className='flex gap-1 bg-white/5 rounded-xl p-1'>
           {tabMeta.map(({ label, count }) => (
             <button
@@ -58,10 +63,9 @@ export default function TransactionHistoryPage() {
           ))}
         </div>
 
-        {/* 거래 목록 */}
         <div className='bg-white/5 border border-white/10 rounded-2xl overflow-hidden'>
-          {filtered.length > 0 ? (
-            filtered.map((tx) => (
+          {transactions.length > 0 ? (
+            transactions.map((tx) => (
               <TransactionItem
                 key={tx.id}
                 tx={tx}
@@ -75,12 +79,12 @@ export default function TransactionHistoryPage() {
           )}
         </div>
 
-        {filtered.length > 0 && (
-          <p className='text-gray-600 text-xs text-center'>{filtered.length}건</p>
+        {transactions.length > 0 && (
+          <p className='text-gray-600 text-xs text-center'>{transactions.length}건</p>
         )}
 
       </main>
       <BottomNav />
     </div>
-  );
+  )
 }
