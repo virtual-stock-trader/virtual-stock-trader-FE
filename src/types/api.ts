@@ -73,7 +73,7 @@ export type Transaction = {
   type: 'buy' | 'sell'
   quantity: number
   price: number
-  total: number
+  total?: number
   date: string
 }
 
