@@ -1,55 +1,69 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import Navbar from '../components/ui/Navbar';
-import PageHeader from '../components/ui/PageHeader';
-import CandlestickChart from '../components/stockDetail/CandlestickChart';
-import HoldingInfo from '../components/stockDetail/HoldingInfo';
-import TradePanel from '../components/stockDetail/TradePanel';
-import { fmtPrice, fmtRate, fmtVol, rateColor } from '../lib/utils';
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import Navbar from '../components/ui/Navbar'
+import PageHeader from '../components/ui/PageHeader'
+import CandlestickChart from '../components/stockDetail/CandlestickChart'
+import HoldingInfo from '../components/stockDetail/HoldingInfo'
+import TradePanel from '../components/stockDetail/TradePanel'
+import { fmtPrice, fmtRate, fmtVol, rateColor } from '../lib/utils'
+import { getStockDetail } from '../lib/api/stocks'
+import { getPortfolio } from '../lib/api/portfolio'
+import { postOrder } from '../lib/api/orders'
+import { useMarketStatus } from '../hooks/useMarketStatus'
 
-type Period = '1D' | '1W' | '1M' | '3M';
-
-type StockInfo = {
-  code: string;
-  name: string;
-  currentPrice: number;
-  changeRate: number;
-  openPrice: number;
-  highPrice: number;
-  lowPrice: number;
-  volume: number;
-};
-
-type HoldingInfo = {
-  quantity: number;
-  averagePrice: number;
-};
-
-const STOCK_DB: Record<string, StockInfo> = {
-  '005930': { code: '005930', name: '삼성전자', currentPrice: 70500, changeRate: 2.17, openPrice: 69000, highPrice: 71200, lowPrice: 68500, volume: 12_345_678 },
-  '000660': { code: '000660', name: 'SK하이닉스', currentPrice: 130000, changeRate: -1.52, openPrice: 132000, highPrice: 133200, lowPrice: 129000, volume: 3_456_789 },
-  '035420': { code: '035420', name: 'NAVER', currentPrice: 188500, changeRate: 1.89, openPrice: 185000, highPrice: 190000, lowPrice: 184500, volume: 876_543 },
-  '051910': { code: '051910', name: 'LG화학', currentPrice: 307000, changeRate: -0.97, openPrice: 310000, highPrice: 311000, lowPrice: 305000, volume: 234_567 },
-  '035720': { code: '035720', name: '카카오', currentPrice: 43200, changeRate: 2.86, openPrice: 42000, highPrice: 43800, lowPrice: 41800, volume: 5_678_901 },
-  '207940': { code: '207940', name: '삼성바이오', currentPrice: 882000, changeRate: -0.9, openPrice: 890000, highPrice: 895000, lowPrice: 879000, volume: 123_456 },
-};
-
-const HOLDING_DB: Record<string, HoldingInfo> = {
-  '005930': { quantity: 10, averagePrice: 68000 },
-  '035720': { quantity: 5, averagePrice: 41000 },
-};
-
-const CASH = 10_000_000;
+type Period = '1D' | '1W' | '1M' | '3M'
 
 export default function StockDetailPage() {
-  const { code } = useParams<{ code: string }>();
+  const { code } = useParams<{ code: string }>()
+  const queryClient = useQueryClient()
 
-  const [period, setPeriod] = useState<Period>('1M');
-  const [tradeTab, setTradeTab] = useState<'buy' | 'sell'>('buy');
-  const [quantity, setQuantity] = useState(1);
+  const { isOpen: isMarketOpen } = useMarketStatus()
+  const [period, setPeriod] = useState<Period>('1M')
+  const [tradeTab, setTradeTab] = useState<'buy' | 'sell'>('buy')
+  const [quantity, setQuantity] = useState(1)
+  const [orderMessage, setOrderMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  const stock = code ? STOCK_DB[code] : null;
-  const holding = code ? HOLDING_DB[code] : null;
+  const { data: stock, isLoading: stockLoading } = useQuery({
+    queryKey: ['stock', code],
+    queryFn: () => getStockDetail(code!),
+    enabled: !!code,
+  })
+
+  const { data: portfolio } = useQuery({
+    queryKey: ['portfolio'],
+    queryFn: getPortfolio,
+  })
+
+  const orderMutation = useMutation({
+    mutationFn: () => postOrder(code!, tradeTab, quantity),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      const tx = data.transaction
+      setOrderMessage({
+        type: 'success',
+        text: `${tx.name} ${tx.quantity}주 ${tradeTab === 'buy' ? '매수' : '매도'} 완료 (${fmtPrice(tx.price)}원)`,
+      })
+      setQuantity(1)
+      setTimeout(() => setOrderMessage(null), 3000)
+    },
+    onError: (err: Error) => {
+      setOrderMessage({ type: 'error', text: err.message })
+      setTimeout(() => setOrderMessage(null), 3000)
+    },
+  })
+
+  if (stockLoading) {
+    return (
+      <div className='min-h-screen bg-[#0a0e1a]'>
+        <Navbar />
+        <div className='flex items-center justify-center h-64 text-gray-500 text-sm'>
+          로딩 중...
+        </div>
+      </div>
+    )
+  }
 
   if (!stock) {
     return (
@@ -59,10 +73,12 @@ export default function StockDetailPage() {
           종목을 찾을 수 없습니다
         </div>
       </div>
-    );
+    )
   }
 
-  const change = stock.currentPrice - stock.openPrice;
+  const holding = portfolio?.holdings.find((h) => h.code === code)
+  const cash = portfolio?.cash ?? 0
+  const change = stock.currentPrice - stock.openPrice
 
   return (
     <div className='min-h-screen bg-[#0a0e1a]'>
@@ -71,7 +87,6 @@ export default function StockDetailPage() {
 
         <PageHeader title={stock.name} badge={stock.code} />
 
-        {/* 현재가 */}
         <div className='flex flex-col gap-1'>
           <p className='text-white text-3xl font-bold tabular-nums'>
             {fmtPrice(stock.currentPrice)}원
@@ -84,7 +99,6 @@ export default function StockDetailPage() {
           </p>
         </div>
 
-        {/* 종목 정보 그리드 */}
         <div className='grid grid-cols-4 gap-2'>
           {[
             { label: '시가', value: fmtPrice(stock.openPrice) },
@@ -104,7 +118,6 @@ export default function StockDetailPage() {
 
         <CandlestickChart
           code={stock.code}
-          basePrice={stock.currentPrice}
           period={period}
           onPeriodChange={setPeriod}
         />
@@ -117,18 +130,33 @@ export default function StockDetailPage() {
           />
         )}
 
+        {orderMessage && (
+          <div
+            className={`px-4 py-3 rounded-xl text-sm font-medium text-center ${
+              orderMessage.type === 'success'
+                ? 'bg-green-500/15 text-green-400'
+                : 'bg-red-500/15 text-red-400'
+            }`}
+          >
+            {orderMessage.text}
+          </div>
+        )}
+
         <TradePanel
           stockName={stock.name}
           currentPrice={stock.currentPrice}
-          cash={CASH}
+          cash={cash}
           holdingQty={holding?.quantity ?? 0}
           tradeTab={tradeTab}
           quantity={quantity}
+          isSubmitting={orderMutation.isPending}
+          isMarketOpen={isMarketOpen}
           onTabChange={setTradeTab}
           onQuantityChange={setQuantity}
+          onSubmit={() => orderMutation.mutate()}
         />
 
       </main>
     </div>
-  );
+  )
 }

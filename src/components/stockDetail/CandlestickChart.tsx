@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   createChart,
   CandlestickSeries,
@@ -6,72 +7,29 @@ import {
   type IChartApi,
   type CandlestickData,
   type Time,
-} from 'lightweight-charts';
+} from 'lightweight-charts'
+import { getCandles } from '../../lib/api/stocks'
 
-type Period = '1D' | '1W' | '1M' | '3M';
-
-const PERIOD_DAYS: Record<Period, number> = {
-  '1D': 5,
-  '1W': 10,
-  '1M': 22,
-  '3M': 65,
-};
-
-function seededRandom(seed: number) {
-  let s = seed | 0;
-  return (): number => {
-    s = (Math.imul(1664525, s) + 1013904223) | 0;
-    return (s >>> 0) / 4294967296;
-  };
-}
-
-function generateOHLC(basePrice: number, seed: number): CandlestickData<Time>[] {
-  const rand = seededRandom(seed);
-  const data: CandlestickData<Time>[] = [];
-  let price = basePrice * 0.85;
-  const endDate = new Date('2026-05-12');
-
-  for (let i = 90; i >= 0; i--) {
-    const date = new Date(endDate);
-    date.setDate(date.getDate() - i);
-    if (date.getDay() === 0 || date.getDay() === 6) continue;
-
-    const open = Math.round(price);
-    const change = (rand() - 0.47) * price * 0.025;
-    const close = Math.round(price + change);
-    const high = Math.round(Math.max(open, close) * (1 + rand() * 0.008));
-    const low = Math.round(Math.min(open, close) * (1 - rand() * 0.008));
-
-    data.push({
-      time: date.toISOString().slice(0, 10) as Time,
-      open,
-      high,
-      low,
-      close,
-    });
-
-    price = close;
-  }
-
-  return data;
-}
+type Period = '1D' | '1W' | '1M' | '3M'
 
 type Props = {
-  code: string;
-  basePrice: number;
-  period: Period;
-  onPeriodChange: (period: Period) => void;
-};
+  code: string
+  period: Period
+  onPeriodChange: (period: Period) => void
+}
 
-export default function CandlestickChart({ code, basePrice, period, onPeriodChange }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
+export default function CandlestickChart({ code, period, onPeriodChange }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<IChartApi | null>(null)
+
+  const { data: candles = [] } = useQuery({
+    queryKey: ['candles', code, period],
+    queryFn: () => getCandles(code, period),
+  })
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const allCandles = generateOHLC(basePrice, parseInt(code, 10));
-    const candles = allCandles.slice(-PERIOD_DAYS[period]);
+    if (!containerRef.current || candles.length === 0) return
+    const container = containerRef.current
 
     const chart = createChart(container, {
       layout: {
@@ -94,7 +52,7 @@ export default function CandlestickChart({ code, basePrice, period, onPeriodChan
       handleScale: false,
       width: container.clientWidth,
       height: 220,
-    });
+    })
 
     const series = chart.addSeries(CandlestickSeries, {
       upColor: '#ef4444',
@@ -103,23 +61,31 @@ export default function CandlestickChart({ code, basePrice, period, onPeriodChan
       borderDownColor: '#3b82f6',
       wickUpColor: '#ef4444',
       wickDownColor: '#3b82f6',
-    });
+    })
 
-    series.setData(candles);
-    chart.timeScale().fitContent();
-    chartRef.current = chart;
+    series.setData(
+      candles.map((c) => ({
+        time: c.time as Time,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+      })) as CandlestickData<Time>[],
+    )
+    chart.timeScale().fitContent()
+    chartRef.current = chart
 
     const handleResize = () => {
-      chartRef.current?.applyOptions({ width: container.clientWidth });
-    };
-    window.addEventListener('resize', handleResize);
+      chartRef.current?.applyOptions({ width: container.clientWidth })
+    }
+    window.addEventListener('resize', handleResize)
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-      chartRef.current = null;
-    };
-  }, [period, code, basePrice]);
+      window.removeEventListener('resize', handleResize)
+      chart.remove()
+      chartRef.current = null
+    }
+  }, [candles])
 
   return (
     <div className='bg-white/5 border border-white/10 rounded-2xl p-4'>
@@ -130,9 +96,7 @@ export default function CandlestickChart({ code, basePrice, period, onPeriodChan
             type='button'
             onClick={() => onPeriodChange(p)}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              period === p
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-gray-200'
+              period === p ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'
             }`}
           >
             {p}
@@ -141,5 +105,5 @@ export default function CandlestickChart({ code, basePrice, period, onPeriodChan
       </div>
       <div ref={containerRef} />
     </div>
-  );
+  )
 }
