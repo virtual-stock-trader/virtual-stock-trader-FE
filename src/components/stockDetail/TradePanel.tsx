@@ -8,6 +8,7 @@ type Props = {
   tradeTab: 'buy' | 'sell'
   quantity: number
   isSubmitting?: boolean
+  isMarketOpen?: boolean
   onTabChange: (tab: 'buy' | 'sell') => void
   onQuantityChange: (qty: number) => void
   onSubmit: () => void
@@ -21,6 +22,7 @@ export default function TradePanel({
   tradeTab,
   quantity,
   isSubmitting = false,
+  isMarketOpen = true,
   onTabChange,
   onQuantityChange,
   onSubmit,
@@ -29,7 +31,7 @@ export default function TradePanel({
 
   const canBuy = tradeTab === 'buy' && cash >= orderAmount
   const canSell = tradeTab === 'sell' && holdingQty >= quantity
-  const isDisabled = isSubmitting || (tradeTab === 'buy' ? !canBuy : !canSell)
+  const isDisabled = !isMarketOpen || isSubmitting || (tradeTab === 'buy' ? !canBuy : !canSell)
 
   return (
     <div className='bg-white/5 border border-white/10 rounded-2xl p-4'>
@@ -97,6 +99,13 @@ export default function TradePanel({
         <p className='text-gray-400 text-sm'>주문 금액</p>
         <p className='text-white text-base font-bold tabular-nums'>{fmtPrice(orderAmount)}원</p>
       </div>
+
+      {!isMarketOpen && (
+        <div className='flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20'>
+          <span className='text-yellow-400 text-xs'>⏰</span>
+          <p className='text-yellow-400 text-xs'>현재 장외 시간입니다. 거래가 불가능합니다.</p>
+        </div>
+      )}
 
       <button
         type='button'
