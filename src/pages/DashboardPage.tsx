@@ -11,12 +11,14 @@ import { getStockDetail } from '../lib/api/stocks'
 import { getPortfolio, getPortfolioHistory } from '../lib/api/portfolio'
 import { getMarketIndices } from '../lib/api/market'
 import { getFavorites, addFavorite, removeFavorite } from '../lib/api/favorites'
+import { useMarketStatus } from '../hooks/useMarketStatus'
 
 const FEATURED_CODES = ['005930', '000660', '035420', '005380', '000270', '035720']
 
 export default function DashboardPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { isOpen: isMarketOpen } = useMarketStatus()
 
   const { data: indices = [] } = useQuery({
     queryKey: ['market-indices'],
@@ -98,6 +100,19 @@ export default function DashboardPage() {
                 {fmtPrice(stockValue)}원
               </p>
             </div>
+          </div>
+
+          <div className='flex items-center justify-between'>
+            <span className='text-gray-500 text-xs font-semibold uppercase tracking-widest'>
+              시장 지수
+            </span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              isMarketOpen
+                ? 'bg-green-500/15 text-green-400'
+                : 'bg-gray-500/15 text-gray-400'
+            }`}>
+              {isMarketOpen ? '장중' : '장외'}
+            </span>
           </div>
 
           <div className='grid grid-cols-2 gap-3'>

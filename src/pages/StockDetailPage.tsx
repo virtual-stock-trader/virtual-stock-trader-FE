@@ -10,6 +10,7 @@ import { fmtPrice, fmtRate, fmtVol, rateColor } from '../lib/utils'
 import { getStockDetail } from '../lib/api/stocks'
 import { getPortfolio } from '../lib/api/portfolio'
 import { postOrder } from '../lib/api/orders'
+import { useMarketStatus } from '../hooks/useMarketStatus'
 
 type Period = '1D' | '1W' | '1M' | '3M'
 
@@ -17,6 +18,7 @@ export default function StockDetailPage() {
   const { code } = useParams<{ code: string }>()
   const queryClient = useQueryClient()
 
+  const { isOpen: isMarketOpen } = useMarketStatus()
   const [period, setPeriod] = useState<Period>('1M')
   const [tradeTab, setTradeTab] = useState<'buy' | 'sell'>('buy')
   const [quantity, setQuantity] = useState(1)
@@ -148,6 +150,7 @@ export default function StockDetailPage() {
           tradeTab={tradeTab}
           quantity={quantity}
           isSubmitting={orderMutation.isPending}
+          isMarketOpen={isMarketOpen}
           onTabChange={setTradeTab}
           onQuantityChange={setQuantity}
           onSubmit={() => orderMutation.mutate()}
